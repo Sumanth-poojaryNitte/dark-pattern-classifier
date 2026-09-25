@@ -1,0 +1,196 @@
+import os
+import pandas as pd
+
+print("Current working directory:")
+print(os.getcwd())
+print("Files in the current folder:")
+
+for file in os.listdir():
+    print(file)
+    import pandas as pd
+from pathlib import Path
+
+# Dataset is in the same folder as this notebook
+file_path = Path("pattern_classifications.csv")
+
+# Check whether the dataset exists
+if not file_path.exists():
+    raise FileNotFoundError(
+        f"Dataset not found: {file_path.resolve()}"
+    )
+
+# Load dataset
+df = pd.read_csv(file_path)
+
+print("Dataset loaded successfully!")
+print("Dataset shape:", df.shape)
+
+print("\nColumns:")
+print(df.columns.tolist())
+
+print("\nFirst 5 rows:")
+display(df.head())
+print(df.info())
+
+print("\nMissing values:")
+print(df.isnull().sum())
+
+print("\nClass distribution:")
+print(df['classification'].value_counts(dropna=False))
+# Remove rows where text or classification is missing
+df = df.dropna(subset=['Pattern String', 'classification'])
+
+# Convert text to string
+df['Pattern String'] = df['Pattern String'].astype(str)
+
+# Convert classification to integer
+df['classification'] = df['classification'].astype(int)
+
+print("Dataset after cleaning:", df.shape)
+
+print(df.head())
+X = df['Pattern String']
+y = df['classification']
+
+print("Number of text samples:", len(X))
+print("Number of labels:", len(y))
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.20,
+    random_state=42,
+    stratify=y
+)
+
+print("Training samples:", len(X_train))
+print("Testing samples:", len(X_test))
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+tfidf = TfidfVectorizer(
+    lowercase=True,
+    stop_words="english",
+    ngram_range=(1, 2),
+    max_features=5000
+)
+
+X_train_tfidf = tfidf.fit_transform(X_train)
+X_test_tfidf = tfidf.transform(X_test)
+
+print("Training TF-IDF shape:", X_train_tfidf.shape)
+print("Testing TF-IDF shape:", X_test_tfidf.shape)
+from sklearn.linear_model import LogisticRegression
+
+lr_model = LogisticRegression(
+    max_iter=1000,
+    class_weight="balanced",
+    random_state=42
+)
+
+lr_model.fit(X_train_tfidf, y_train)
+
+print("Logistic Regression training completed!")
+lr_pred = lr_model.predict(X_test_tfidf)
+
+print("Predictions generated successfully!")
+print("First 20 predictions:")
+print(lr_pred[:20])
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    classification_report,
+    confusion_matrix
+)
+
+accuracy = accuracy_score(y_test, lr_pred)
+precision = precision_score(y_test, lr_pred, zero_division=0)
+recall = recall_score(y_test, lr_pred, zero_division=0)
+f1 = f1_score(y_test, lr_pred, zero_division=0)
+
+print("Accuracy :", accuracy)
+print("Precision:", precision)
+print("Recall   :", recall)
+print("F1 Score :", f1)
+
+print("\nClassification Report:")
+
+print(classification_report(
+    y_test,
+    lr_pred,
+    target_names=["Not Deceptive", "Deceptive"],
+    zero_division=0
+))
+import matplotlib.pyplot as plt
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+
+cm = confusion_matrix(y_test, lr_pred)
+
+disp = ConfusionMatrixDisplay(
+    confusion_matrix=cm,
+    display_labels=["Not Deceptive", "Deceptive"]
+)
+
+disp.plot()
+
+plt.title("Logistic Regression Confusion Matrix")
+plt.show()
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score
+)
+
+accuracy = accuracy_score(y_test, lr_pred)
+precision = precision_score(y_test, lr_pred, zero_division=0)
+recall = recall_score(y_test, lr_pred, zero_division=0)
+f1 = f1_score(y_test, lr_pred, zero_division=0)
+
+print("Logistic Regression Results")
+print("--------------------------------")
+print("Accuracy :", round(accuracy, 4))
+print("Precision:", round(precision, 4))
+print("Recall   :", round(recall, 4))
+print("F1 Score :", round(f1, 4))
+import joblib
+
+joblib.dump(lr_model, "dark_pattern_model.pkl")
+joblib.dump(tfidf, "tfidf_vectorizer.pkl")
+
+print("Model and TF-IDF vectorizer saved successfully!")
+user_text = input("Enter a pattern: ")
+
+if not user_text.strip():
+    print("Please enter some text.")
+else:
+    # Convert user input to TF-IDF
+    text_tfidf = tfidf.transform([user_text])
+
+    # Make prediction
+    prediction = lr_model.predict(text_tfidf)[0]
+
+    # Get confidence
+    probabilities = lr_model.predict_proba(text_tfidf)[0]
+    confidence = max(probabilities) * 100
+
+    # Confidence level
+    if confidence >= 80:
+        confidence_level = "HIGH"
+    elif confidence >= 60:
+        confidence_level = "MEDIUM"
+    else:
+        confidence_level = "LOW"
+
+    # Prediction result
+    if prediction == 1:
+        result = "DECEPTIVE PATTERN"
+    else:
+        result = "NOT DECEPTIVE"
+
+    print("\nPrediction:", result)
+    print("Confidence:", round(confidence, 2), "%")
+    print("Confidence Level:", confidence_level)
+    
