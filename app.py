@@ -374,8 +374,8 @@ if input_method == "📝 Enter Text":
         "Enter the text you want to analyze:",
         height=160,
         placeholder=(
-            "Example: Hurry! Only 2 items left. "
-            "Order now before it's too late!"
+            "Enter here. "
+            "You can upload and analyse!"
         )
     )
 
