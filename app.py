@@ -442,26 +442,17 @@ if input_method == "📝 Enter Text":
             # DISPLAY RESULT
             # ------------------------------------------------
 
-            st.markdown(
-                f"""
-                <div class="result-box {result_class}">
+            # Display prediction using Streamlit components.
+            # This avoids showing HTML tags as plain text.
+            st.subheader("🤖 AI Prediction")
 
-                    <h2>Prediction</h2>
+            if prediction == 1:
+                st.error(f"⚠️ {result}")
+            else:
+                st.success(f"✅ {result}")
 
-                    <h3>{result}</h3>
-
-                    <p class="confidence">
-                        Confidence: {confidence:.2f}%
-                    </p>
-
-                    <p class="level">
-                        Confidence Level: {confidence_level}
-                    </p>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            st.write(f"**Confidence:** {confidence:.2f}%")
+            st.write(f"**Confidence Level:** {confidence_level}")
 
 
 # ============================================================
@@ -609,28 +600,17 @@ else:
                             # DISPLAY RESULT
                             # ------------------------------------------------
 
-                            st.markdown(
-                                f"""
-                                <div class="result-box {result_class}">
+                            # Display prediction using Streamlit components.
+                            # This avoids showing HTML tags as plain text.
+                            st.subheader("🤖 AI Prediction")
 
-                                    <h2>🤖 AI Prediction</h2>
+                            if prediction == 1:
+                                st.error(f"⚠️ {result}")
+                            else:
+                                st.success(f"✅ {result}")
 
-                                    <h3>{result}</h3>
-
-                                    <p class="confidence">
-                                        Confidence:
-                                        {confidence:.2f}%
-                                    </p>
-
-                                    <p class="level">
-                                        Confidence Level:
-                                        {confidence_level}
-                                    </p>
-
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
+                            st.write(f"**Confidence:** {confidence:.2f}%")
+                            st.write(f"**Confidence Level:** {confidence_level}")
 
                         else:
 
